@@ -27,11 +27,10 @@ const  Home = (props) => {
     setDados(data)
   }
 
-  const handleAddProduct = (product) => {
-    const { addToCart } = props
-    
+  const handleAddProduct = (id) => {
+    const { addToCartRequest } = props  
 
-    addToCart(product)
+    addToCartRequest(id)
   }
 
   return (
@@ -41,7 +40,7 @@ const  Home = (props) => {
         <img src={product.image} alt={product.title} />
         <strong>{product.title}</strong>
         <span>{product.priceFormatted}</span>
-        <button type='button' onClick={() => handleAddProduct(product)}>
+        <button type='button' onClick={() => handleAddProduct(product.id)}>
           <div>
             <MdAddShoppingCart size={16} color='#fff' />{' '}
             {props.amount[product.id] || 0}
