@@ -1,35 +1,75 @@
-import { call, select, put, all, takeLatest } from 'redux-saga/effects'
+import {
+  call,
+  select,
+  put,
+  all,
+  takeLatest,
+  takeEvery,
+  delay,
+} from 'redux-saga/effects';
+import { toast } from 'react-toastify';
 
-import api from '../../../service/api'
-import { formatPrice } from '../../../util/format'
+import api from '../../../service/api';
+import history from '../../../config/history'
+import { formatPrice } from '../../../util/format';
 
-import { addToCartSuccess, updateAmount } from './actions'
+import {
+  addToCartSuccess,
+  updateAmountSuccess,
+  updateAmountFailure,
+} from './actions';
 
 function* addToCart({ id }) {
-  const productExists = yield select(
-    state => state.cart.find(p => p.id === id)
-  )
-  if(productExists) {
+  yield delay(100);
 
-    const amount = productExists.amount + 1
-    yield put(updateAmount(id, amount))
-    
+  const productExists = yield select(state =>
+    state.cart.products.find(p => p.id === id)
+  );
+
+  const stock = yield call(api.get, `/stock/${id}`);
+
+  const stockAmount = stock.data.amount;
+  const currentAmount = productExists ? productExists.amount : 0;
+
+  const amount = currentAmount + 1;
+
+  if (amount > stockAmount) {
+    toast.error('Amount requested is out of stock.');
+    yield put(updateAmountFailure(id));
+    return;
+  }
+
+  if (productExists) {
+    yield put(updateAmountSuccess(id, amount));
   } else {
+    const response = yield call(api.get, `/products/${id}`);
 
-  const response = yield call(api.get, `/products/${id}`)
+    const data = {
+      ...response.data,
+      amount: 1,
+      priceFormatted: formatPrice(response.data.price),
+    };
 
-  const data = {
-    ...response.data,
-    amount: 1,
-    priceFormatted: formatPrice(response.data.price)
+    yield put(addToCartSuccess(data));
+    history.push('/cart')
   }
-  yield put(addToCartSuccess(data))
+}
 
+function* updateAmount({ id, amount }) {
+  if (amount <= 0) return;
+
+  const stock = yield call(api.get, `stock/${id}`);
+  const stockAmount = stock.data.amount;
+
+  if (amount > stockAmount) {
+    toast.error('Amount requested is out of stock.');
+    return;
   }
 
-  
+  yield put(updateAmountSuccess(id, amount));
 }
 
 export default all([
-  takeLatest('@cart/ADD_REQUEST', addToCart)
-])
+  takeEvery('@cart/ADD_REQUEST', addToCart),
+  takeLatest('@cart/UPDATE_AMOUNT_REQUEST', updateAmount),
+]);

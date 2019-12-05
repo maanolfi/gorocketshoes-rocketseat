@@ -35,6 +35,7 @@ const  Home = (props) => {
 
   return (
     <ProductList>
+    
     { dados.map(product => (
       <li key={product.id}>
         <img src={product.image} alt={product.title} />
@@ -42,9 +43,8 @@ const  Home = (props) => {
         <span>{product.priceFormatted}</span>
         <button type='button' onClick={() => handleAddProduct(product.id)}>
           <div>
-            <MdAddShoppingCart size={16} color='#fff' />{' '}
-            {props.amount[product.id] || 0}
-           
+            <MdAddShoppingCart size={16} color="#FFF" />{' '}
+            {props.amount[product.id] || 0}         
           </div>
 
           <span>Adicionar ao Carriho</span>
@@ -59,10 +59,11 @@ const  Home = (props) => {
 }
 
 const mapStateToProps = state => ({
-  amount: state.cart.reduce((amount, product) => {
-    amount[product.id] = product.amount
-    return amount
-  }, {})
+  amount: state.cart.products.reduce((amount, product) => {
+    amount[product.id] = product.amount;
+    return amount;
+  }, {}),
+  cart: state.cart.products
 });
 
 const mapDispatchToProps = dispatch =>

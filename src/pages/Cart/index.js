@@ -7,14 +7,14 @@ import * as CartActions from '../../store/modules/cart/actions'
 
 import { Container, ProductTable, Total } from './styles';
 
-const Cart = ({ cart, removeFromCart, updateAmount, total }) => {
+const Cart = ({ cart, removeFromCart, updateAmountRequest, total }) => {
   
   const handleAmountSoma = (product) => {
-    updateAmount(product.id, product.amount + 1)
+    updateAmountRequest(product.id, product.amount + 1)
   }
 
   const handleAmountSubtrair = (product) => {
-    updateAmount(product.id, product.amount - 1)
+    updateAmountRequest(product.id, product.amount - 1)
   }
 
   return (
@@ -31,7 +31,7 @@ const Cart = ({ cart, removeFromCart, updateAmount, total }) => {
         </thead>
         <tbody>
           { cart.map(product => (
-            <tr>
+            <tr key={product.id}>
             <td>
              <img src={product.image} alt={product.title} />
             </td>
@@ -42,11 +42,11 @@ const Cart = ({ cart, removeFromCart, updateAmount, total }) => {
             </td>
 
             <td>
-              <div>
+              <div>              
                 <button type='button' onClick={() => handleAmountSubtrair(product)}>
                   <MdRemoveCircleOutline size={20} color='#7159c1' />
                 </button>
-                <input type='number' readonly value={product.amount} />
+                <input type='number' readOnly value={product.amount} />
                 <button type='button' onClick={() => handleAmountSoma(product)}>
                   <MdAddCircleOutline size={20} color='#7159c1' />
                 </button>
@@ -87,12 +87,12 @@ const mapDispatchToProps = dispatch =>
   bindActionCreators(CartActions, dispatch);
 
 const mapStateToProps = state => ({
-  cart: state.cart.map(product => ({
+  cart: state.cart.products.map(product => ({
     ...product,
     subtotal: formatPrice(product.price * product.amount)
   })),
   total: formatPrice(
-    state.cart.reduce((total, product) => {
+    state.cart.products.reduce((total, product) => {
     return total + product.price * product.amount
   }, 0))
 });
